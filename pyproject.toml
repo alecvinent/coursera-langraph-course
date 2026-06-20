@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "langgraph-course"
+version = "0.1.0"
+description = "Workbook for the LangGraph Framework course on Coursera"
+authors = []
+readme = "README.md"
+packages = [{ include = "langgraph_course", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+langgraph = "^0.4"
+langchain = "^0.3"
+langchain-community = "^0.3"
+langchain-core = "^0.3"
+langsmith = "^0.3"
+python-dotenv = "^1.0"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
