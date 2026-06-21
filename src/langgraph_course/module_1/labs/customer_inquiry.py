@@ -88,7 +88,9 @@ class CustomerInquiryAgent(AgentBase):
         workflow.add_node("respond", self.generate_response)
         workflow.add_node("human_review", self.human_review)
         workflow.add_node("chatbot", self.chatbot)
+
         workflow.set_entry_point("classify")
+
         workflow.add_conditional_edges(
             "classify", self._should_review, {
                 CustomerInquiryWorkflowAction.RESPOND.value: "respond",
