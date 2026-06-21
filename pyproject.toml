@@ -13,9 +13,11 @@ langchain = "^0.3"
 langchain-community = "^0.3"
 langchain-core = "^0.3"
 langsmith = "^0.3"
+pydantic-settings = "^2.0"
 python-dotenv = "^1.0"
-
-[tool.poetry.group.dev.dependencies]
+grandalf = "^0.8"
+loguru = "^0.7.3"
+openai = "^2.43.0"
 
 [build-system]
 requires = ["poetry-core"]
