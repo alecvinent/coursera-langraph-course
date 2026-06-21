@@ -25,11 +25,13 @@ class CafeAgentState(TypedDict):
     response: str
     daily_menu: list
     recommendations: list
+    my_orders: list
 
 
 class CafeAgent(AgentBase):
     def __init__(self, provider: str = "auto", llm=None) -> None:
         self.llm = llm or LLMFactory.create(provider=provider)
+        self._state = {"messages": []}
         super().__init__()
 
     def _build_graph(self):
@@ -39,6 +41,9 @@ class CafeAgent(AgentBase):
         workflow.add_node('get_daily_menu', self.get_daily_menu)
         workflow.add_node('get_recommendations', self.get_recommendations)
         workflow.add_node('chat', self.chatbot)
+        workflow.add_node('create_order', self.add_order)
+        workflow.add_node('review_orders', self.list_orders)
+        workflow.add_node('send_order', self.send_order)
         workflow.add_node('respond', self.generate_response)
 
         workflow.set_entry_point('classify intent')
@@ -48,14 +53,13 @@ class CafeAgent(AgentBase):
                 CafeAgentIntentType.REQUEST_DAILY_MENU: 'get_daily_menu',
                 CafeAgentIntentType.REQUEST_RECOMMENDATION: 'get_recommendations',
                 CafeAgentIntentType.CHAT: 'chat',
-                CafeAgentIntentType.CREATE_ORDER: 'chat',
-                CafeAgentIntentType.REVIEW_ORDER: 'chat',
-                CafeAgentIntentType.SEND_ORDER: 'chat',
+                CafeAgentIntentType.CREATE_ORDER: 'create_order',
+                CafeAgentIntentType.REVIEW_ORDER: 'review_orders',
+                CafeAgentIntentType.SEND_ORDER: 'send_order',
             }
         )
-        workflow.add_edge('get_daily_menu', 'respond')
-        workflow.add_edge('get_recommendations', 'respond')
-        workflow.add_edge('chat', 'respond')
+        for node in ('get_daily_menu', 'get_recommendations', 'chat', 'create_order', 'review_orders', 'send_order'):
+            workflow.add_edge(node, 'respond')
         workflow.add_edge('respond', END)
 
         return workflow.compile()
@@ -72,19 +76,45 @@ class CafeAgent(AgentBase):
     RESPONSE_TEMPLATES = {
         CafeAgentIntentType.REQUEST_DAILY_MENU: "Today's menu:\n{items}",
         CafeAgentIntentType.REQUEST_RECOMMENDATION: "Recommendations:\n{items}",
+        CafeAgentIntentType.CREATE_ORDER: "Order added:\n{items}",
+        CafeAgentIntentType.REVIEW_ORDER: "Your orders:\n{items}",
+        CafeAgentIntentType.SEND_ORDER: "Order sent!\n{items}\nTotal: ${total:.2f}",
     }
 
     @staticmethod
     def _format_items(items: list) -> str:
-        return "\n".join(f"- {i['name']}: ${i['price']}" for i in items)
+        lines = []
+        for i in items:
+            qty = i.get("quantity", 1)
+            name = i['name']
+            price = i['price']
+            if qty > 1:
+                lines.append(f"- {name} x{qty}: ${price * qty:.2f}")
+            else:
+                lines.append(f"- {name}: ${price:.2f}")
+        return "\n".join(lines)
+
+    DATA_KEYS = {
+        CafeAgentIntentType.REQUEST_DAILY_MENU: "daily_menu",
+        CafeAgentIntentType.REQUEST_RECOMMENDATION: "recommendations",
+        CafeAgentIntentType.CREATE_ORDER: "my_orders",
+        CafeAgentIntentType.REVIEW_ORDER: "my_orders",
+        CafeAgentIntentType.SEND_ORDER: "my_orders",
+    }
+
+    @staticmethod
+    def _total(items: list) -> float:
+        return sum(i['price'] * i.get('quantity', 1) for i in items)
 
     def generate_response(self, state: CafeAgentState) -> Dict:
         intent = state["intent"]
         template = self.RESPONSE_TEMPLATES.get(intent)
         if template:
-            data_key = "daily_menu" if intent == CafeAgentIntentType.REQUEST_DAILY_MENU else "recommendations"
-            items = self._format_items(state.get(data_key, []))
-            response = template.format(items=items)
+            data_key = self.DATA_KEYS[intent]
+            items = state.get(data_key, [])
+            formatted = self._format_items(items)
+            total = self._total(items)
+            response = template.format(items=formatted, total=total)
         else:
             response = self._create_response(intent)
         logger.info("Auto respond to {}: {}", intent, response)
@@ -102,24 +132,37 @@ class CafeAgent(AgentBase):
             'recommendations': cafe_data.get('recommendations', []),
         }
 
+    def list_orders(self, state: CafeAgentState) -> Dict:
+        logger.info("Listing orders")
+        return {
+            'my_orders': state.get('my_orders', []),
+        }
+
+    def add_order(self, state: CafeAgentState) -> Dict:
+        logger.info("Adding order")
+        last_message = self.get_last_message(state)
+        orders = list(state.get("my_orders", []))
+        orders.append({"name": last_message, "price": 0})
+        return {"my_orders": orders}
+
+    def send_order(self, state: CafeAgentState) -> Dict:
+        logger.info("Sending order")
+        return {"my_orders": []}
+
     @classmethod
     def _classify_message(cls, message: str) -> CafeAgentIntentType:
         message = message.lower()
-
-        # todo: work with a vector db so can handle similarities
 
         if 'menu' in message or 'daily menu' in message:
             return CafeAgentIntentType.REQUEST_DAILY_MENU
         elif 'recommendation' in message or 'would' in message:
             return CafeAgentIntentType.REQUEST_RECOMMENDATION
-        elif 'order' in message:
-            return CafeAgentIntentType.CREATE_ORDER
-        elif 'recommendation' in message:
-            return CafeAgentIntentType.REQUEST_RECOMMENDATION
-        elif 'review' in message:
-            return CafeAgentIntentType.REVIEW_ORDER
-        elif 'send' in message:
+        elif 'send' in message or 'submit' in message:
             return CafeAgentIntentType.SEND_ORDER
+        elif 'review' in message or 'list' in message or 'my order' in message:
+            return CafeAgentIntentType.REVIEW_ORDER
+        elif 'add' in message or 'order' in message or 'buy' in message or 'purchase' in message:
+            return CafeAgentIntentType.CREATE_ORDER
         else:
             return CafeAgentIntentType.CHAT
 
@@ -143,12 +186,27 @@ class CafeAgent(AgentBase):
         else:
             return "Free chat with agent"
 
+    def run(self, question: str) -> Dict:
+        initial = {**self._state}
+        initial.setdefault("messages", [])
+        initial["messages"].append(("user", question))
+        result = self.graph.invoke(initial)
+        self._state = result
+        return result
 
 if __name__ == "__main__":
     cafe_agent = CafeAgent(provider="openrouter")
 
     cafe_agent.print_graph()
 
-    for question in cafe_data.get('questions', []):
+    print("\nCafe Agent ready. Type your questions (or 'bye' to exit).\n")
+
+    while True:
+        question = input("You: ").strip()
+        if not question:
+            continue
+        if cafe_agent.should_continue({"messages": [("user", question)]}) == cafe_agent.END_SIGNAL:
+            print("Assistant: Goodbye!")
+            break
         result = cafe_agent.run(question=question)
-        print(result)
+        print(f"Assistant: {result.get('response', '')}")
