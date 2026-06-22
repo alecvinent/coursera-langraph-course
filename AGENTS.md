@@ -15,6 +15,9 @@ This file defines conventions for AI coding assistants (e.g., opencode) working 
 - **Style**: Follow PEP 8. Use `ruff` for linting.
 - **LangGraph patterns**: Use `StateGraph`, `MessageGraph`, `Node`, `Edge`, `ConditionalEdge`. Prefer `TypedDict` or `BaseModel` for state schemas.
 - **Formatting**: Black-compatible (88 char lines).
+- **No hardcoded values**: Never hardcode API keys, model names, URLs, or environment-specific config. Use `config.py`'s `Settings` class (powered by `pydantic-settings`) and `.env` for all configurable values.
+- **Logging**: Use `loguru` (`from loguru import logger`). Configured once in `src/langgraph_course/log.py` (imported automatically at package init via `__init__.py`). Use `logger.info()`, `logger.warning()`, etc.
+- **LLM Factory**: Use `LLMFactory` in `utils/llm.py` to create LLM instances. Supports provider registry pattern — new providers are added via `@register_provider` decorator in `utils/providers/`. Provider selection driven by `settings.llm_provider` (default: `"auto"`) or explicit `LLMFactory.create(provider="...")`.
 
 ## Testing
 
@@ -30,3 +33,4 @@ This file defines conventions for AI coding assistants (e.g., opencode) working 
 - Do not introduce dependencies beyond the LangChain/LangGraph ecosystem unless necessary.
 - Prefer editing existing files over creating new ones unless the task explicitly requires a new file.
 - Never commit changes unless explicitly asked.
+- Always keep `README.md` in sync with the current state of the project. When adding, renaming, or removing files or features, update the relevant sections (project structure, setup, usage, etc.).
