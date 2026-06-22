@@ -3,7 +3,7 @@ from typing import TypedDict, Dict, Annotated
 
 from langgraph.constants import END
 from langgraph.graph import StateGraph, add_messages
-from loguru import logger
+from langgraph_course.log import logger
 
 from langgraph_course.module_1.labs.data import cafe_data
 from langgraph_course.utils.agentbase import AgentBase
