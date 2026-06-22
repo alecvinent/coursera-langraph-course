@@ -1,4 +1,4 @@
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langgraph_course.config import settings
 from .base import BaseProvider, register_provider
 
