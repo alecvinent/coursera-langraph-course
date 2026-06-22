@@ -24,3 +24,5 @@ cafe_data = {
         'price': 100,
     }]
 }
+
+
