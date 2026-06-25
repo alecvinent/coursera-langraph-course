@@ -158,6 +158,7 @@ def set_customer_info(
 @tool
 def send_order() -> str:
     """Finalize and submit the order. Requires customer info and at least one item to be set first."""
+    global _customer
     if _customer is None:
         return "Please provide your name, address, phone, and email first."
     if not _orders:
@@ -165,7 +166,8 @@ def send_order() -> str:
     order = Order(customer=_customer, date="2026-06-23", details=list(_orders))
     total = sum(d.price * d.quantity for d in _orders)
     _orders.clear()
-    lines = [f"Order confirmed for {order.customer.name}!"]
+    _customer = None
+    lines = [f"Order confirmed for {order.customer.name}! Thank you for your order!"]
     for d in order.details:
         lines.append(f"- {d.product} x{d.quantity}: ${d.price * d.quantity:.2f}")
     lines.append(f"\nTotal: ${total:.2f}")

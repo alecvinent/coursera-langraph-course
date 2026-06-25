@@ -135,9 +135,11 @@ class TestTools(TestCase):
         T.create_order.invoke({"item_name": "Latte", "quantity": 2})
         result = T.send_order.invoke({})
         self.assertIn("Order confirmed", result)
+        self.assertIn("Thank you", result)
         self.assertIn("Carol", result)
         self.assertIn("$9.00", result)
         self.assertEqual(T._orders, [])
+        self.assertIsNone(T._customer)
 
 
 class TestCafeAgentGraph(TestCase):
