@@ -29,11 +29,17 @@ src/langgraph_course/
 │   └── labs/                # Exercises for Module 2
 └── module_3/                # Building Multi-Agent Systems
     └── labs/                # Exercises for Module 3
+├── agents/                  # Tool-calling agents
+│   ├── models.py            # Pydantic models (Customer, Order, MenuOptions, etc.)
+│   ├── tools.py             # Tool functions (get_daily_menu, create_order, etc.)
+│   ├── prompts.py           # System prompts for agent behavior
+│   └── cafe_agent.py        # 2-node LangGraph tool-calling graph
 tests/
 ├── base.py                  # Shared TestCase with setUp/tearDown helpers
 ├── test_module_1/           # Tests for Module 1 exercises
 ├── test_module_2/           # Tests for Module 2 exercises
-└── test_module_3/           # Tests for Module 3 exercises
+├── test_module_3/           # Tests for Module 3 exercises
+└── test_agents/             # Tests for tool-calling agents
 ```
 
 ## How to Work on an Exercise
@@ -140,3 +146,4 @@ poetry run python -m unittest tests.test_module_1.test_customer_inquiry -v
 | 1 | Understanding LangGraph Architecture and Core Concepts | customer_inquiry |
 | 2 | Implementing Graph-Based State Management | — |
 | 3 | Building Multi-Agent Systems | — |
+| Agents | Tool-calling agents with LLM graphs | cafe_agent |
