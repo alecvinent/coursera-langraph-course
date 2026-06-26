@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 from langchain_core.messages import AIMessage
 
-from langgraph_course.agents import tools as T
-from langgraph_course.agents.models import Customer, OrderDetail
+from langgraph_course.agents.cafe import tools as T
+from langgraph_course.agents.cafe.models import Customer, OrderDetail
 
 
 class TestTools(TestCase):

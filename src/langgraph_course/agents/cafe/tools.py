@@ -2,8 +2,7 @@ from typing import Annotated
 
 from langchain_core.tools import tool
 
-from langgraph_course.agents.models import Customer, DailyMenu, MenuOptions, Order, OrderDetail
-from langgraph_course.log import logger
+from langgraph_course.agents.cafe.models import Customer, DailyMenu, MenuOptions, Order, OrderDetail
 
 _MENU = DailyMenu(
     date="2026-06-23",

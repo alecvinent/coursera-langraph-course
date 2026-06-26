@@ -5,8 +5,8 @@ from langgraph.constants import END
 from langgraph.graph import StateGraph, add_messages
 from langgraph.prebuilt import ToolNode
 
-from langgraph_course.agents.prompts import system_prompt as _PROMPT
-from langgraph_course.agents.tools import (
+from langgraph_course.agents.cafe.prompts import system_prompt as _PROMPT
+from langgraph_course.agents.cafe.tools import (
     create_order,
     get_daily_menu,
     get_orders,
@@ -15,7 +15,6 @@ from langgraph_course.agents.tools import (
     send_order,
     set_customer_info,
 )
-from langgraph_course.log import logger
 from langgraph_course.utils.llm import LLMFactory
 
 
