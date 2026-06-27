@@ -24,16 +24,16 @@ class CafeAgentState(TypedDict):
 
 _TOOLS = [
     get_daily_menu,
-    get_recommendations,
-    recommend_by_preference,
-    create_order,
-    get_orders,
-    set_customer_info,
-    send_order,
+    # get_recommendations,
+    # recommend_by_preference,
+    # create_order,
+    # get_orders,
+    # set_customer_info,
+    # send_order,
 ]
 
 
-def run_agent(message: str, provider: str = "openrouter") -> str:
+def _build_agent(provider: str = "openrouter"):
     model = LLMFactory.create(provider=provider).bind_tools(_TOOLS)
 
     def agent_node(state: CafeAgentState) -> CafeAgentState:
@@ -55,14 +55,22 @@ def run_agent(message: str, provider: str = "openrouter") -> str:
         {"continue": "tools", "end": END},
     )
     workflow.add_edge("tools", "agent")
-    app = workflow.compile()
+    return workflow.compile()
 
+
+def run_agent(message: str, provider: str = "openrouter") -> str:
+    app = _build_agent(provider=provider)
     result = app.invoke({"messages": [HumanMessage(content=message)]})
 
     for msg in reversed(result["messages"]):
         if isinstance(msg, AIMessage) and msg.content:
             return msg.content
     return ""
+
+
+def run_agent_full(message: str, provider: str = "openrouter") -> dict:
+    app = _build_agent(provider=provider)
+    return app.invoke({"messages": [HumanMessage(content=message)]})
 
 
 if __name__ == "__main__":
