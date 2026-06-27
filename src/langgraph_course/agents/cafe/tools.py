@@ -1,8 +1,11 @@
 from typing import Annotated
 
+import requests
 from langchain_core.tools import tool
 
 from langgraph_course.agents.cafe.models import Customer, DailyMenu, MenuOptions, Order, OrderDetail
+from langgraph_course.log import logger
+from langgraph_course.utils.request import get_json
 
 _MENU = DailyMenu(
     date="2026-06-23",
@@ -11,26 +14,31 @@ _MENU = DailyMenu(
             name="Espresso", price=3.50, description="Classic espresso shot",
             category="coffee", tags=["vegan", "gluten-free"],
             variations=["double shot", "decaf"],
+            image_url="https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=400&h=250&fit=crop",
         ),
         MenuOptions(
             name="Latte", price=4.50, description="Steamed milk espresso",
             category="coffee", tags=["vegetarian"],
             variations=["oat milk", "soy milk", "almond milk"],
+            image_url="https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=400&h=250&fit=crop",
         ),
         MenuOptions(
             name="Croissant", price=3.00, description="Buttery croissant",
             category="pastry", tags=["vegetarian"],
             variations=["gluten-free option", "stuffed with ham & cheese"],
+            image_url="https://images.unsplash.com/photo-1509363542-6e2f3c0b1b0e?w=400&h=250&fit=crop",
         ),
         MenuOptions(
             name="Avocado Toast", price=7.50, description="Smashed avocado on sourdough",
             category="breakfast", tags=["vegan", "vegetarian"],
             variations=["add egg", "add bacon", "no onions"],
+            image_url="https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=400&h=250&fit=crop",
         ),
         MenuOptions(
             name="Cold Brew", price=4.00, description="24-hour steeped cold brew",
             category="coffee", tags=["vegan", "gluten-free"],
             variations=["vanilla syrup", "with cream"],
+            image_url="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=250&fit=crop",
         ),
     ],
 )
@@ -56,15 +64,13 @@ def _clear() -> None:
 @tool
 def get_daily_menu() -> str:
     """Return today's daily menu with item names, prices, and food categories."""
-    lines = ["Today's Menu:"]
-    for item in _MENU.options:
-        tags_str = ", ".join(item.tags) if item.tags else ""
-        lines.append(f"- {item.name}: ${item.price:.2f} [{item.category}]")
-        if tags_str:
-            lines.append(f"  Tags: {tags_str}")
-        if item.variations:
-            lines.append(f"  Variations: {', '.join(item.variations)}")
-    return "\n".join(lines)
+    logger.info("Fetching cafe menu...")
+
+    url = 'http://localhost:3000/api/v1/daily-menu'
+    try:
+        return get_json(url)
+    except requests.RequestException as e:
+        return f"Error fetching cafe menu: {e}"
 
 
 @tool
@@ -73,6 +79,7 @@ def get_recommendations() -> str:
     lines = ["Today's Recommendations:"]
     for item in _MENU.options:
         lines.append(f"- {item.name}: ${item.price:.2f} — {item.description}")
+        lines.append(f"  Image: {item.image_url}")
     return "\n".join(lines)
 
 
@@ -91,6 +98,7 @@ def recommend_by_preference(
     lines = [f"Items matching '{preference}':"]
     for opt in matching:
         lines.append(f"- {opt.name}: ${opt.price:.2f} — {opt.description}")
+        lines.append(f"  Image: {opt.image_url}")
         if opt.variations:
             lines.append(f"  Variations: {', '.join(opt.variations)}")
     return "\n".join(lines)

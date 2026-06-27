@@ -17,6 +17,7 @@ class MenuOptions(BaseModel):
     category: str = ""
     tags: list[str] = []
     variations: list[str] = []
+    image_url: str = ""
 
 
 class DailyMenu(BaseModel):
