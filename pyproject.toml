@@ -17,6 +17,7 @@ langgraph = "^1.2.6"
 langchain = "^1.3.10"
 langchain-community = "^0.4.2"
 langchain-openai = "^1.3.2"
+fastapi = "^0.138.1"
 
 [tool.poetry.group.dev.dependencies]
 pymupdf = "^1.27.2.3"
