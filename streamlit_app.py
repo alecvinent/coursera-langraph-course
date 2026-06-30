@@ -12,6 +12,7 @@ from langgraph_course.agents.cafe.prompts import system_prompt
 from langgraph_course.agents.cafe.tools import _clear
 from langgraph_course.agents.weather_agent import WeatherAgent
 from langgraph_course.log import logger
+from langgraph_course.module_2.labs.legal_documents import LegalDocumentAgent, sample_documents
 
 st.set_page_config(page_title="LangGraph Agents", layout="centered")
 
@@ -224,7 +225,7 @@ def _render_content(content: str) -> None:
             st.image(images[i], width=100)
 
 
-agent_mode = st.sidebar.radio("Agent", ["☕ Cafe", "🌤 Weather"], index=0)
+agent_mode = st.sidebar.radio("Agent", ["☕ Cafe", "🌤 Weather", "📄 Legal Docs"], index=0)
 
 if agent_mode == "☕ Cafe":
     title = "☕ Bistro Cafe"
@@ -232,49 +233,74 @@ if agent_mode == "☕ Cafe":
     chat_placeholder = "Ask about the menu, place an order..."
     run_agent = run_cafe_agent
     system_info = system_prompt.strip()
-else:
+elif agent_mode == "🌤 Weather":
     title = "🌤 Weather Agent"
     caption = "LangGraph-powered weather assistant"
     chat_placeholder = "Ask about the weather..."
     system_info = "Weather assistant that fetches live forecasts."
     run_agent = lambda prompt, provider=None: WeatherAgent(provider=provider).run_agent(prompt)
+else:
+    title = "📄 Legal Document Processor"
+    caption = "Resilient document processing with error handling & compliance"
+    chat_placeholder = "Paste legal document text..."
+    system_info = "Processes legal documents through a multi-stage pipeline with retry/backoff, graceful degradation, and human review escalation."
+
+    def _run_legal(prompt: str, provider: str | None = None) -> dict:
+        pending = st.session_state.pop("_legal_pending", None)
+        if pending:
+            return LegalDocumentAgent(provider=provider).run(pending)
+        if "_legal_doc_count" not in st.session_state:
+            st.session_state._legal_doc_count = 0
+        st.session_state._legal_doc_count += 1
+        urgency_val = st.session_state.get("_legal_urgency", "standard")
+        return LegalDocumentAgent(provider=provider).run({
+            "document_id": "DOC-{:04d}".format(st.session_state._legal_doc_count),
+            "raw_text": prompt,
+            "urgency": urgency_val,
+        })
+
+    run_agent = _run_legal
 
 with st.sidebar:
+    st.title(title)
+    st.caption(caption)
+
+    provider = st.selectbox(
+        "LLM Provider",
+        ["openrouter", "auto", "openai", "anthropic"],
+        index=0,
+        help="Which LLM backend to use.",
+    )
+
     if agent_mode == "☕ Cafe":
-        st.title(title)
-        st.caption(caption)
-
-        provider = st.selectbox(
-            "LLM Provider",
-            ["openrouter", "auto", "openai", "anthropic"],
-            index=0,
-            help="Which LLM backend to use.",
-        )
-
         if st.button("🔄 New Order", type="primary", use_container_width=True):
             _clear()
             st.session_state.messages = []
             st.rerun()
-
         with st.expander("ℹ️ System Prompt"):
             st.text(system_info)
-    else:
-        st.title(title)
-        st.caption(caption)
 
-        provider = st.selectbox(
-            "LLM Provider",
-            ["openrouter", "auto", "openai", "anthropic"],
-            index=0,
-            help="Which LLM backend to use.",
-        )
-
+    elif agent_mode == "🌤 Weather":
         if st.button("🔄 New Chat", type="primary", use_container_width=True):
             st.session_state.messages = []
             st.rerun()
-
         with st.expander("ℹ️ Info"):
             st.text("Uses the internal weather API at localhost:8000")
+
+    else:
+        if st.button("🔄 New Document", type="primary", use_container_width=True):
+            st.session_state.messages = []
+            st.session_state._legal_doc_count = 0
+            st.rerun()
+        urgency = st.selectbox("Urgency", ["standard", "rush"], index=0, key="_legal_urgency", help="Rush skips complex LLM processing for faster results.")
+
+        sample_idx = st.selectbox("Sample Document", range(len(sample_documents)), format_func=lambda i: "{} — {}".format(sample_documents[i]["document_id"], sample_documents[i].get("description", "Standard document")), index=0)
+        if st.button("📋 Load Sample", use_container_width=True):
+            st.session_state._legal_pending = dict(sample_documents[sample_idx])
+            st.session_state._legal_pending.pop("description", None)
+            st.rerun()
+        with st.expander("ℹ️ Info"):
+            st.text("4-stage pipeline: extract → validate → process → summarize\n• Retry/backoff on API failures\n• Regex fallback when services degrade\n• Human review for unrecoverable docs")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -293,7 +319,7 @@ for msg in st.session_state.messages:
         else:
             _render_content(content)
 
-if prompt := st.chat_input(chat_placeholder):
+def _process_prompt(prompt: str) -> None:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -306,7 +332,10 @@ if prompt := st.chat_input(chat_placeholder):
             try:
                 result = run_agent(prompt, provider=provider)
 
-                if agent_mode == "🌤 Weather":
+                if agent_mode == "📄 Legal Docs":
+                    response = result.get("summary", "No summary generated")
+                    status.update(label="Done", state="complete")
+                elif agent_mode == "🌤 Weather":
                     messages = result.get("messages", [])
                     last = messages[-1] if messages else {}
                     if hasattr(last, "content"):
@@ -352,7 +381,22 @@ if prompt := st.chat_input(chat_placeholder):
                 logger.opt(exception=True).error("Agent error")
                 response = f"Sorry, something went wrong:\n\n```\n{e}\n```"
                 status.update(label="Error", state="error")
-        if agent_mode == "☕ Cafe":
+        if agent_mode == "📄 Legal Docs":
+            st.markdown(response)
+            with st.expander("📊 Processing Details"):
+                col1, col2, col3 = st.columns(3)
+                col1.metric("Processing Time", "{:.1f}ms".format(result.get("total_processing_time", 0) * 1000))
+                col2.metric("Outcome", result.get("compliance", {}).get("processing_outcome", "?"))
+                col3.metric("Fallback Used", "Yes" if result.get("error_handling", {}).get("fallback_used") else "No")
+                with st.expander("🛤️ Path Taken"):
+                    st.write(result.get("paths_taken", []))
+                with st.expander("⏱️ Latencies"):
+                    st.json(result.get("latencies", {}))
+                with st.expander("📋 Compliance Audit Trail"):
+                    st.json(result.get("compliance", {}).get("audit_trail", []))
+                with st.expander("⚠️ Error Logs"):
+                    st.json(result.get("error_handling", {}).get("error_logs", []))
+        elif agent_mode == "☕ Cafe":
             _render_cafe(response)
             for url in cafe_images:
                 st.image(url, width=100)
@@ -362,3 +406,12 @@ if prompt := st.chat_input(chat_placeholder):
             _render_weather(weather_data)
 
     st.session_state.messages.append({"role": "assistant", "content": response})
+
+
+# Handle sample document load before chat_input
+if agent_mode == "📄 Legal Docs" and "_legal_pending" in st.session_state:
+    sample = st.session_state["_legal_pending"]
+    _process_prompt(sample.get("raw_text", ""))
+
+if prompt := st.chat_input(chat_placeholder):
+    _process_prompt(prompt)
