@@ -13,11 +13,13 @@ This file defines conventions for AI coding assistants (e.g., opencode) working 
 - **Python**: Use Python 3.10+ type hints. Prefer `pydantic` models over dicts for structured state.
 - **Imports**: Group by stdlib → third-party → local; alphabetize within each group.
 - **Style**: Follow PEP 8. Use `ruff` for linting.
-- **LangGraph patterns**: Use `StateGraph`, `MessageGraph`, `Node`, `Edge`, `ConditionalEdge`. Prefer `TypedDict` or `BaseModel` for state schemas.
+- **LangGraph patterns**: Use `StateGraph`, `MessageGraph`, `Node`, `Edge`, `ConditionalEdge`. Prefer `TypedDict` or `BaseModel` for state schemas. Use `Annotated[list, add_messages]` reducer for message fields.
 - **Formatting**: Black-compatible (88 char lines).
 - **No hardcoded values**: Never hardcode API keys, model names, URLs, or environment-specific config. Use `config.py`'s `Settings` class (powered by `pydantic-settings`) and `.env` for all configurable values.
 - **Logging**: Use `loguru` (`from loguru import logger`). Configured once in `src/langgraph_course/log.py` (imported automatically at package init via `__init__.py`). Use `logger.info()`, `logger.warning()`, etc.
 - **LLM Factory**: Use `LLMFactory` in `utils/llm.py` to create LLM instances. Supports provider registry pattern — new providers are added via `@register_provider` decorator in `utils/providers/`. Provider selection driven by `settings.llm_provider` (default: `"auto"`) or explicit `LLMFactory.create(provider="...")`.
+- **Telemetry**: Use the shared `timed_node` decorator from `utils/decorators.py` to automatically record per-node latencies and execution paths. Apply it as `@timed_node('node_name')` on each node function.
+- **Error handling**: Structure error logs as `list[ErrorRecord]` TypedDict with step, error_type, message, and timestamp. Use exponential backoff retry for transient API failures and tag degraded outputs with `processing_outcome="partial"`. Human escalation is triggered only after retry exhaustion or unrecoverable content.
 
 ## Testing
 
