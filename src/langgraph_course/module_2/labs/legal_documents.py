@@ -5,17 +5,17 @@ multi-stage pipeline with error handling, fallback mechanisms, and
 comprehensive audit/telemetry tracking.
 """
 
-import functools
 import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Optional, TypedDict
+from typing import Any, Dict, Optional, TypedDict
 
 from langgraph.constants import END
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 
 from langgraph_course.log import logger
 from langgraph_course.utils.agentbase import AgentBase
+from langgraph_course.utils.decorators import timed_node
 from langgraph_course.utils.llm import LLMFactory
 
 
@@ -84,32 +84,6 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-# ---------------------------------------------------------------------------
-# timed_node decorator (mirrors tickets.py pattern)
-# ---------------------------------------------------------------------------
-
-
-def timed_node(node_name: str) -> Callable:
-    """Decorator that records per-node latency and appends to paths_taken."""
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Dict:
-            state = args[1]
-            start = time.monotonic()
-            result = func(*args, **kwargs)
-            elapsed = time.monotonic() - start
-
-            latencies = dict(state.get('latencies', {}))
-            latencies[node_name] = elapsed
-            result['latencies'] = latencies
-
-            paths = list(state.get('paths_taken', []))
-            paths.append(node_name)
-            result['paths_taken'] = paths
-
-            return result
-        return wrapper
-    return decorator
 
 
 # ---------------------------------------------------------------------------

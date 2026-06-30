@@ -1,8 +1,7 @@
-import functools
 import re
 import time
 from enum import Enum
-from typing import Any, Callable, Dict, Optional, TypedDict
+from typing import Any, Dict, Optional, TypedDict
 
 from langgraph.constants import END
 from langgraph.graph.state import CompiledStateGraph, StateGraph
@@ -10,29 +9,8 @@ from pydantic import BaseModel, Field
 
 from langgraph_course.log import logger
 from langgraph_course.utils.agentbase import AgentBase
+from langgraph_course.utils.decorators import timed_node
 from langgraph_course.utils.llm import LLMFactory
-
-
-def timed_node(node_name: str) -> Callable:
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Dict:
-            state = args[1]
-            start = time.monotonic()
-            result = func(*args, **kwargs)
-            elapsed = time.monotonic() - start
-
-            latencies = dict(state.get('latencies', {}))
-            latencies[node_name] = elapsed
-            result['latencies'] = latencies
-
-            paths = list(state.get('paths_taken', []))
-            paths.append(node_name)
-            result['paths_taken'] = paths
-
-            return result
-        return wrapper
-    return decorator
 
 
 class TicketUrgencyLevel(Enum):
