@@ -2,6 +2,54 @@
 
 Workbook for the [LangGraph Framework](https://www.coursera.org/learn/langgraph-framework) course on Coursera.
 
+## LinkedIn Summary
+
+**LangGraph Framework — Multi-Agent Systems & Stateful LLM Workflows**
+
+Built production-grade multi-agent AI systems using LangGraph, LangChain, and LangSmith. Implemented 9 multi-agent coordination patterns (coordinator, specialist, event-driven, ReAct, reflection, planning, tool, sequential, human-in-the-loop) across 11 standalone graph implementations with unified support-ticket domain, `@timed_node` observability, and `interrupt()`/`MemorySaver` checkpointing.
+
+**Key skills demonstrated**:
+
+- **Agentic AI Architecture** — Designed typed state schemas, conditional routing, and cyclic graphs for dynamic multi-agent orchestration
+- **State Management** — Implemented persistent shared state across 5-agent workflows with provenance chaining, conflict detection, circuit breakers, and graceful degradation
+- **Observability** — Wired `@timed_node` telemetry, structured loguru logging, and `TelemetryEvent` records into every node; built real-time Streamlit streaming UI
+- **Resilience Patterns** — Exponential backoff retry, input refinement gates, execution budget enforcement, and 3-strike circuit breakers routed via LangGraph conditional edges
+- **Enterprise Patterns** — Checkpointing, interrupt/resume approval gates, per-thread workflow isolation, and modular pluggable agent nodes
+- **Testing & Quality** — 35+ unittest test cases across state validation, node isolation, conflict resolution, routing logic, and end-to-end integration (3+ workflow paths)
+- **Production Readiness** — `ruff` linting, Black formatting, pydantic-settings config, and `LLMFactory` provider abstraction (OpenRouter, OpenAI, Anthropic)
+
+**Stack**: Python 3.10+ · LangGraph · LangChain · LangSmith · pydantic · loguru · Streamlit · Poetry
+
+## What You Learn By Module
+
+### Module 1 — LangGraph Architecture & Core Concepts
+- **StateGraph fundamentals** — typed state schemas, nodes, edges, conditional edges
+- **Workflow composition** — entry/finish points, linear vs branching topologies
+- **Conditional routing** — keyword-based classification, dynamic edge targets
+- **Testing discipline** — writing `unittest` tests before implementation, test-driven graph development
+- **Builds**: chatbot, intent classifier, support-ticket triage agent
+
+### Module 2 — State Management & Resilience
+- **State design** — modeling complex state with `pydantic.BaseModel`, state transitions, lifecycle enums
+- **Error handling** — structured `ErrorRecord` logging, gracefully degraded states (`processing_outcome="partial"`)
+- **Retry patterns** — exponential backoff for transient API failures, configurable retry budgets
+- **Observability** — per-node latency tracking with `@timed_node`, audit-trail accumulation in state
+- **Builds**: resilient legal document processor with compliance tracking
+
+### Module 3 — Multi-Agent Systems
+- **9 coordination patterns** — when to use coordinator vs specialist vs event-driven vs ReAct vs reflection vs planning vs tool vs sequential vs human-in-the-loop
+- **Shared state** — cross-agent awareness via a single `BaseModel` state schema, provenance chains, finding attribution
+- **Resilience at scale** — circuit breaker (3-strike bypass), conflict detection/resolution, execution budget enforcement, graceful degradation
+- **Production patterns** — `interrupt()`/`Command()` for human-in-the-loop, `MemorySaver` checkpointing, thread isolation
+- **Streaming UIs** — real-time agent card updates via `StateGraph.stream()` with Streamlit
+- **Builds**: 11 standalone pattern implementations + 5-agent research system (Research, Financial, Market, Risk, Synthesis)
+
+### Module 4 (Capstone) — Production-Ready Multi-Agent System
+- **Emergent intelligence** — agent collaboration producing insights no single agent can generate
+- **Full observability** — `@timed_node` + loguru + `TelemetryEvent` records in shared state
+- **Advanced resilience** — circuit breaker, input refinement, LLM-based conflict resolution, retry with backoff
+- **Documentation** — architecture docs, reflection report, 3+ workflow path integration tests
+
 ## Overview
 
 LangGraph is a framework for building stateful, multi-actor applications with Large Language Models (LLMs). It extends
@@ -751,9 +799,9 @@ Every pattern in this module implements LangGraph's interrupt/resume mechanism:
 
 ## Course Modules
 
-| Module | Topic                                                  | Labs                                                                                                                                                     |
-|--------|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1      | Understanding LangGraph Architecture and Core Concepts | chatbot, customer_inquiry, tickets                                                                                                                       |
-| 2      | Implementing Graph-Based State Management              | legal_documents                                                                                                                                          |
-| 3      | Building Multi-Agent Systems                           | coordinator, coordinator_cafe, specialist, event_driven_collaboration, react, reflection, reflection_cafe, planning, tool, sequential, human_in_the_loop |
-| Agents | Tool-calling agents with LLM graphs                    | cafe_agent, weather_agent                                                                                                                                |
+| Module | Topic | Preview | Labs |
+|--------|-------|---------|------|
+| 1 | LangGraph Architecture & Core Concepts | Build your first StateGraph workflows — a chatbot, an intent-classification agent, and a support-ticket routing system. Learn typed state, nodes, edges, and conditional routing fundamentals. | chatbot, customer_inquiry, tickets |
+| 2 | Graph-Based State Management | Implement resilient document processing with error handling, retry logic, compliance tracking, and audit trails. Master state transitions, checkpointing, and failure recovery patterns. | legal_documents |
+| 3 | Multi-Agent Systems | Explore 9 coordination strategies (coordinator, specialist, event-driven, ReAct, reflection, planning, tool, sequential, human-in-the-loop) applied to a unified support-ticket domain. Build a production-ready 5-agent research system with shared state, emergent intelligence, and circuit-breaker resilience. | 11 patterns + multi_agent_research |
+| Agents | Tool-Calling Agents | Build LLM agents that call external tools — a cafe ordering assistant with menu/order/customer tools and a live weather forecast agent with HTTP integration. | cafe_agent, weather_agent |
