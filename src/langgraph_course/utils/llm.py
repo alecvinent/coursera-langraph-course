@@ -7,17 +7,18 @@ from .providers import get_provider
 from langgraph_course.log import logger
 
 ENABLED_MODELS = [
-    'openai/gpt-oss-120b:free',
-    'cohere/north-mini-code:free',
+    # 'openai/gpt-oss-120b:free',
+    # 'cohere/north-mini-code:free',
     # 'nvidia/llama-nemotron-rerank-vl-1b-v2:free',
     # 'nvidia/nemotron-3-ultra-550b-a55b:free',
     # 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-    'poolside/laguna-xs.2:free',
+    # 'poolside/laguna-xs.2:free',
     # 'poolside/laguna-m.1:free',
-    'google/gemma-4-26b-a4b-it:free',
-    'qwen/qwen3-next-80b-a3b-instruct:free',
-    'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
-    'meta-llama/llama-3.3-70b-instruct:free'
+    # 'google/gemma-4-26b-a4b-it:free',
+    # 'qwen/qwen3-next-80b-a3b-instruct:free',
+    # 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+    # 'meta-llama/llama-3.3-70b-instruct:free',
+    'liquid/lfm-2.5-1.2b-thinking:free',
 ]
 
 
