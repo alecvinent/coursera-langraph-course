@@ -13,6 +13,9 @@ from langgraph_course.agents.cafe.tools import _clear
 from langgraph_course.agents.weather_agent import WeatherAgent
 from langgraph_course.log import logger
 from langgraph_course.module_2.labs.legal_documents import LegalDocumentAgent, sample_documents
+from langgraph_course.module_3.labs.multi_agent_research.graph import (
+    stream_research,
+)
 
 st.set_page_config(page_title="LangGraph Agents", layout="centered")
 
@@ -225,7 +228,38 @@ def _render_content(content: str) -> None:
             st.image(images[i], width=100)
 
 
-agent_mode = st.sidebar.radio("Agent", ["☕ Cafe", "🌤 Weather", "📄 Legal Docs"], index=0)
+AGENT_CARDS = {
+    "validate_request": ("🔍", "Validating Request"),
+    "web_research": ("🌐", "Web Research"),
+    "data_analysis": ("📊", "Data Analysis"),
+    "trend_analysis": ("📈", "Trend Analysis"),
+    "competitive_intel": ("🏢", "Competitive Intel"),
+    "synthesize": ("📝", "Synthesis"),
+    "needs_refinement": ("✏️", "Needs Refinement"),
+}
+
+
+def _render_agent_card(icon: str, label: str, findings: list | None, elapsed: str = "") -> str:
+    if findings:
+        lines = [f"<small>{elapsed}</small>"] if elapsed else []
+        for f in findings:
+            content = f.content[:150] if hasattr(f, "content") else str(f)[:150]
+            conf = f.confidence if hasattr(f, "confidence") else 0
+            lines.append(
+                f"<div style='padding:4px 0'><span style='font-size:0.9em'>{content}</span>"
+                f"<br><span style='font-size:0.75em;color:gray'>confidence: {conf:.0%}</span></div>"
+            )
+        body = "".join(lines)
+    else:
+        body = f"<div style='padding:8px 0'><span style='color:gray'>⏳ Running...</span></div>"
+    return f"""
+<div style="border:1px solid #ddd;border-radius:8px;padding:8px 12px;margin:6px 0">
+  <strong>{icon} {label}</strong>
+  {body}
+</div>"""
+
+
+agent_mode = st.sidebar.radio("Agent", ["☕ Cafe", "🌤 Weather", "📄 Legal Docs", "🧠 Research"], index=0)
 
 if agent_mode == "☕ Cafe":
     title = "☕ Bistro Cafe"
@@ -239,7 +273,7 @@ elif agent_mode == "🌤 Weather":
     chat_placeholder = "Ask about the weather..."
     system_info = "Weather assistant that fetches live forecasts."
     run_agent = lambda prompt, provider=None: WeatherAgent(provider=provider).run_agent(prompt)
-else:
+elif agent_mode == "📄 Legal Docs":
     title = "📄 Legal Document Processor"
     caption = "Resilient document processing with error handling & compliance"
     chat_placeholder = "Paste legal document text..."
@@ -260,6 +294,15 @@ else:
         })
 
     run_agent = _run_legal
+else:
+    title = "🧠 Multi-Agent Research"
+    caption = "LangGraph-powered multi-agent market research"
+    chat_placeholder = "Enter a research topic (e.g., 'EV battery market in SE Asia')..."
+    system_info = (
+        "Coordinates 5 specialized agents (web research, data analysis, trend analysis, "
+        "competitive intelligence, synthesis) to produce comprehensive market analysis reports."
+    )
+    run_agent = None  # handled separately via stream_research
 
 with st.sidebar:
     st.title(title)
@@ -287,7 +330,7 @@ with st.sidebar:
         with st.expander("ℹ️ Info"):
             st.text("Uses the internal weather API at localhost:8000")
 
-    else:
+    elif agent_mode == "📄 Legal Docs":
         if st.button("🔄 New Document", type="primary", use_container_width=True):
             st.session_state.messages = []
             st.session_state._legal_doc_count = 0
@@ -301,6 +344,13 @@ with st.sidebar:
             st.rerun()
         with st.expander("ℹ️ Info"):
             st.text("4-stage pipeline: extract → validate → process → summarize\n• Retry/backoff on API failures\n• Regex fallback when services degrade\n• Human review for unrecoverable docs")
+
+    else:
+        if st.button("🔄 New Research", type="primary", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+        with st.expander("ℹ️ Info"):
+            st.text("5-agent system: Web Research → Data Analysis → Trend Analysis → Competitive Intel → Synthesis")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -328,59 +378,100 @@ def _process_prompt(prompt: str) -> None:
         response = ""
         weather_data = None
         cafe_images: list[str] = []
-        with st.status("Thinking…", expanded=False) as status:
-            try:
-                result = run_agent(prompt, provider=provider)
+        research_state = None
 
-                if agent_mode == "📄 Legal Docs":
-                    response = result.get("summary", "No summary generated")
+        if agent_mode == "🧠 Research":
+            with st.status("🧠 Research in progress...", expanded=True) as research_status:
+                try:
+                    card_placeholders = {}
+                    for node_key, (icon, label) in AGENT_CARDS.items():
+                        card_placeholders[node_key] = st.empty()
+                        card_placeholders[node_key].markdown(
+                            _render_agent_card(icon, label, None),
+                            unsafe_allow_html=True,
+                        )
+
+                    for node_name, state in stream_research(
+                        topic=prompt, max_execution_minutes=10
+                    ):
+                        if node_name in card_placeholders:
+                            findings = state.agent_outputs.get(node_name, []) if node_name != "synthesize" else []
+                            card_placeholders[node_name].markdown(
+                                _render_agent_card(
+                                    *AGENT_CARDS[node_name],
+                                    findings,
+                                ),
+                                unsafe_allow_html=True,
+                            )
+
+                    research_state = state
+                    report = state.report
+                    if report:
+                        sections = report.sections or []
+                        response = "\n\n".join(
+                            s.get("content", "") for s in sections if s.get("content")
+                        ) or "Research completed — no report sections generated."
+                    else:
+                        response = "Research completed, but no report was generated."
+                    research_status.update(label="✅ Research complete", state="complete")
+                except Exception as e:
+                    logger.opt(exception=True).error("Research error")
+                    response = f"Research failed:\n\n```\n{e}\n```"
+                    research_status.update(label="❌ Research failed", state="error")
+        else:
+            with st.status("Thinking…", expanded=False) as status:
+                try:
+                    result = run_agent(prompt, provider=provider)
+
+                    if agent_mode == "📄 Legal Docs":
+                        response = result.get("summary", "No summary generated")
+                        status.update(label="Done", state="complete")
+                    elif agent_mode == "🌤 Weather":
+                        messages = result.get("messages", [])
+                        last = messages[-1] if messages else {}
+                        if hasattr(last, "content"):
+                            response = last.content
+                        elif isinstance(last, dict):
+                            response = last.get("content", "")
+                        else:
+                            response = str(last)
+                        for m in messages:
+                            if not hasattr(m, "content"):
+                                continue
+                            text = str(m.content)
+                            if getattr(m, "name", None) == "get_weather":
+                                try:
+                                    weather_data = json.loads(text)
+                                except (json.JSONDecodeError, TypeError):
+                                    pass
+                    else:
+                        messages = result.get("messages", [])
+                        last = messages[-1] if messages else {}
+                        if hasattr(last, "content"):
+                            response = last.content
+                        elif isinstance(last, dict):
+                            response = last.get("content", "")
+                        else:
+                            response = str(last)
+                        for m in messages:
+                            if not hasattr(m, "content"):
+                                continue
+                            text = str(m.content)
+                            if getattr(m, "name", None) in ("get_daily_menu", "get_recommendations", "recommend_by_preference"):
+                                body = json.loads(text) if text.startswith("{") else None
+                                if body:
+                                    for day in body.get("daily", []):
+                                        img = day.get("weather_image")
+                                        if img:
+                                            cafe_images.append(img)
+                                else:
+                                    cafe_images.extend(IMAGE_URL_PATTERN.findall(text))
+
                     status.update(label="Done", state="complete")
-                elif agent_mode == "🌤 Weather":
-                    messages = result.get("messages", [])
-                    last = messages[-1] if messages else {}
-                    if hasattr(last, "content"):
-                        response = last.content
-                    elif isinstance(last, dict):
-                        response = last.get("content", "")
-                    else:
-                        response = str(last)
-                    for m in messages:
-                        if not hasattr(m, "content"):
-                            continue
-                        text = str(m.content)
-                        if getattr(m, "name", None) == "get_weather":
-                            try:
-                                weather_data = json.loads(text)
-                            except (json.JSONDecodeError, TypeError):
-                                pass
-                else:
-                    messages = result.get("messages", [])
-                    last = messages[-1] if messages else {}
-                    if hasattr(last, "content"):
-                        response = last.content
-                    elif isinstance(last, dict):
-                        response = last.get("content", "")
-                    else:
-                        response = str(last)
-                    for m in messages:
-                        if not hasattr(m, "content"):
-                            continue
-                        text = str(m.content)
-                        if getattr(m, "name", None) in ("get_daily_menu", "get_recommendations", "recommend_by_preference"):
-                            body = json.loads(text) if text.startswith("{") else None
-                            if body:
-                                for day in body.get("daily", []):
-                                    img = day.get("weather_image")
-                                    if img:
-                                        cafe_images.append(img)
-                            else:
-                                cafe_images.extend(IMAGE_URL_PATTERN.findall(text))
-
-                status.update(label="Done", state="complete")
-            except Exception as e:
-                logger.opt(exception=True).error("Agent error")
-                response = f"Sorry, something went wrong:\n\n```\n{e}\n```"
-                status.update(label="Error", state="error")
+                except Exception as e:
+                    logger.opt(exception=True).error("Agent error")
+                    response = f"Sorry, something went wrong:\n\n```\n{e}\n```"
+                    status.update(label="Error", state="error")
         if agent_mode == "📄 Legal Docs":
             st.markdown(response)
             with st.expander("📊 Processing Details"):
@@ -400,6 +491,38 @@ def _process_prompt(prompt: str) -> None:
             _render_cafe(response)
             for url in cafe_images:
                 st.image(url, width=100)
+        elif agent_mode == "🧠 Research":
+            st.markdown(response)
+            if research_state:
+                with st.expander("📊 Per-Agent Contributions"):
+                    for role, findings in research_state.agent_outputs.items():
+                        if findings:
+                            with st.container():
+                                st.markdown(f"**{role.replace('_', ' ').title()}** ({len(findings)} findings)")
+                                for f in findings:
+                                    st.markdown(f"- {f.content[:200]}")
+                                    st.caption(f"Confidence: {f.confidence:.0%} | Source: {f.source}")
+
+                with st.expander("⚡ Conflicts Detected"):
+                    if research_state.conflicts:
+                        for c in research_state.conflicts:
+                            st.markdown(f"- **{c.description}**")
+                            st.caption(f"Status: {c.resolution_status.value}")
+                    else:
+                        st.markdown("No conflicts detected.")
+
+                with st.expander("🏷️ Provenance Trace"):
+                    if research_state.report and research_state.report.provenance_trace:
+                        st.json(research_state.report.provenance_trace)
+                    else:
+                        st.markdown("Provenance trace not available.")
+
+                total_findings = sum(len(v) for v in research_state.agent_outputs.values())
+                col1, col2 = st.columns(2)
+                col1.metric("Agents Activated", len(research_state.agent_outputs))
+                col2.metric("Total Findings", total_findings)
+                if research_state.report:
+                    st.caption(f"Report generated: {research_state.report.generated_at.strftime('%H:%M:%S UTC')}")
         else:
             _render_content(response)
         if weather_data:
