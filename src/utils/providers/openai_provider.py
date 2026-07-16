@@ -1,4 +1,4 @@
-from langgraph_course.config import settings
+from config import settings
 from .base import BaseProvider, register_provider
 
 

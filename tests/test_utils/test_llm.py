@@ -1,7 +1,7 @@
 from unittest import IsolatedAsyncioTestCase, TestCase
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from langgraph_course.utils.llm import LLMFactory, get_llm, get_openrouter_llm
+from utils import LLMFactory, get_llm, get_openrouter_llm
 
 
 class FakeProvider:
@@ -86,7 +86,7 @@ class TestLLMModuleLevelAliases(TestCase):
         self.assertIs(get_openrouter_llm, LLMFactory.openrouter)
 
     def test_registry_contains_builtin_providers(self) -> None:
-        from langgraph_course.utils.providers.base import _PROVIDERS
+        from utils import _PROVIDERS
         self.assertIn("auto", _PROVIDERS)
         self.assertIn("openrouter", _PROVIDERS)
         self.assertIn("openai", _PROVIDERS)

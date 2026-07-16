@@ -5,9 +5,9 @@ from langgraph.graph import StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from loguru import logger
 
-from langgraph_course.models import State
-from langgraph_course.utils.agentbase import AgentBase
-from langgraph_course.utils.llm import LLMFactory
+from models import State
+from utils import AgentBase
+from utils import LLMFactory
 
 
 class ChatBot(AgentBase):

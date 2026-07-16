@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict, Annotated, Sequence, Any
+from typing import Literal, TypedDict, Annotated, Sequence
 
 import requests
 from langchain_core.messages import BaseMessage
@@ -6,9 +6,9 @@ from langchain_core.tools import tool
 from langgraph.graph import END, START, StateGraph, add_messages
 from langgraph.prebuilt import ToolNode
 
-from langgraph_course.log import logger
-from langgraph_course.utils.llm import LLMFactory
-from langgraph_course.utils.request import get_json
+from log import logger
+from utils import LLMFactory
+from utils.request import get_json
 
 
 @tool

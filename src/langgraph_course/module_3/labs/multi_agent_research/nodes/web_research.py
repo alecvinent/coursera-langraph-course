@@ -14,7 +14,7 @@ from langgraph_course.module_3.labs.multi_agent_research.telemetry.events import
     TelemetryEventType,
     get_buffer,
 )
-from langgraph_course.utils.llm import LLMFactory
+from utils import LLMFactory
 
 
 def web_research_node(state: ResearchState) -> ResearchState:

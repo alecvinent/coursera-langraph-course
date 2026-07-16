@@ -4,8 +4,8 @@ import requests
 from langchain_core.tools import tool
 
 from langgraph_course.agents.cafe.models import Customer, DailyMenu, MenuOptions, Order, OrderDetail
-from langgraph_course.log import logger
-from langgraph_course.utils.request import get_json
+from log import logger
+from utils.request import get_json
 
 _MENU = DailyMenu(
     date="2026-06-23",

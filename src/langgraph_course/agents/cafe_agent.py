@@ -7,15 +7,9 @@ from langgraph.prebuilt import ToolNode
 
 from langgraph_course.agents.cafe.prompts import system_prompt as _PROMPT
 from langgraph_course.agents.cafe.tools import (
-    create_order,
     get_daily_menu,
-    get_orders,
-    get_recommendations,
-    recommend_by_preference,
-    send_order,
-    set_customer_info,
 )
-from langgraph_course.utils.llm import LLMFactory
+from utils import LLMFactory
 
 
 class CafeAgentState(TypedDict):

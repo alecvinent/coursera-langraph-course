@@ -11,7 +11,7 @@ from langgraph_course.agents.cafe_agent import run_agent_full as run_cafe_agent
 from langgraph_course.agents.cafe.prompts import system_prompt
 from langgraph_course.agents.cafe.tools import _clear
 from langgraph_course.agents.weather_agent import WeatherAgent
-from langgraph_course.log import logger
+from log import logger
 from langgraph_course.module_2.labs.legal_documents import LegalDocumentAgent, sample_documents
 from langgraph_course.module_3.labs.multi_agent_research.graph import (
     stream_research,

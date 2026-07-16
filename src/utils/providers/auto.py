@@ -1,6 +1,6 @@
 from langchain.chat_models import init_chat_model
 
-from langgraph_course.config import settings
+from config import settings
 
 from .base import BaseProvider, register_provider
 

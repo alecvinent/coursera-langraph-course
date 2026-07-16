@@ -2,9 +2,9 @@ import random
 
 from langchain_core.language_models import BaseChatModel
 
-from langgraph_course.config import settings
+from config import settings
 from .providers import get_provider
-from langgraph_course.log import logger
+from log import logger
 
 ENABLED_MODELS = [
     # 'openai/gpt-oss-120b:free',

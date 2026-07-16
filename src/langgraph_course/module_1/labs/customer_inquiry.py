@@ -7,8 +7,8 @@ from langgraph.graph.state import CompiledStateGraph
 from loguru import logger
 
 from langgraph_course.module_1.labs.data import customer_inquiry_questions
-from langgraph_course.utils.agentbase import AgentBase
-from langgraph_course.utils.llm import LLMFactory
+from utils import AgentBase
+from utils import LLMFactory
 
 
 class CustomerInquiryIntentType(Enum):

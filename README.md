@@ -183,7 +183,7 @@ Use `LLMFactory.call()` to make an async LLM call — it dispatches to the corre
 
 ```python
 import asyncio
-from langgraph_course.utils.llm import LLMFactory
+from utils import LLMFactory
 
 response = asyncio.run(LLMFactory.call("What is LangGraph?"))
 print(response)
@@ -205,7 +205,7 @@ result = llm.invoke("Hello")
 Each provider can also be used independently:
 
 ```python
-from langgraph_course.utils.providers.openrouter import OpenRouterProvider
+from utils.providers.openrouter import OpenRouterProvider
 
 provider = OpenRouterProvider()
 response = asyncio.run(provider.call("Hello"))

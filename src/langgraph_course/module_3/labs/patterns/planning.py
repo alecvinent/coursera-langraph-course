@@ -45,10 +45,10 @@ from langgraph.graph import StateGraph, add_messages
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command, interrupt
 
-from langgraph_course.log import logger
-from langgraph_course.utils.agentbase import AgentBase
-from langgraph_course.utils.decorators import timed_node
-from langgraph_course.utils.llm import LLMFactory
+from log import logger
+from utils import AgentBase
+from utils import timed_node
+from utils import LLMFactory
 
 
 # ---------------------------------------------------------------------------
