@@ -83,6 +83,8 @@ src/langgraph_course/
 │       ├── tickets.py       # Support-ticket routing with retry logic
 │       ├── ticket_submission.txt  # Coursera reflection submission
 │       └── data.py          # Shared test data
+├── multiagent-governance_course/  # Agent Ecosystem Mapping (Module 1 Foundations)
+│   └── module_1_foundations/
 ├── module_2/                # Implementing State Management
 │   └── labs/
 │       ├── __init__.py
@@ -113,6 +115,13 @@ src/langgraph_course/
 │   └── weather_agent.py     # Weather agent with HTTP tool support
 tests/
 ├── base.py                  # Shared TestCase with setUp/tearDown helpers
+├── multiagent-governance_course/
+│   └── test_module_1_foundations/
+│       ├── test_analysis.py
+│       ├── test_classification.py
+│       ├── test_export.py
+│       ├── test_interaction_map.py
+│       └── test_scenarios.py
 ├── test_module_1/
 │   ├── test_chatbot.py
 │   ├── test_customer_inquiry.py
@@ -220,6 +229,9 @@ poetry run python -m unittest discover -v
 # Run tests for a specific module
 poetry run python -m unittest tests.test_module_1 -v
 poetry run python -m unittest tests.test_module_2 -v
+
+# Run tests for Module 1 Foundations (hyphenated path — use -t .)
+python -m unittest discover -s tests/multiagent-governance_course/test_module_1_foundations -t . -v
 
 # Run tests for a specific exercise
 poetry run python -m unittest tests.test_module_1.test_customer_inquiry -v
