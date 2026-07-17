@@ -1,12 +1,12 @@
 <!--
   Sync Impact Report
   ===================
-  Version change: (template, unreleased) → 1.0.0
-  Modified principles: N/A (first fill-in)
-  Added sections: Core Principles (I-V), Development Workflow, Code Quality & Review, Governance
+  Version change: 1.0.0 → 1.1.0
+  Modified principles: N/A
+  Added sections: Core Principles (VI. Dependency Discipline)
   Removed sections: N/A
   Templates requiring updates:
-    - .specify/templates/plan-template.md → ✅ no changes needed (Constitution Check section is already generic)
+    - .specify/templates/plan-template.md → ✅ no changes needed
     - .specify/templates/spec-template.md → ✅ no changes needed
     - .specify/templates/tasks-template.md → ✅ no changes needed
   Follow-up TODOs: None
@@ -83,15 +83,37 @@ Mirrored structure makes it trivial to find tests for any source file.
 Independent test cases prevent cascading failures and keep the test suite
 diagnostic.
 
+### VI. Dependency Discipline
+
+New external dependencies MUST NOT be added without justification. Before
+adding any new package, evaluate whether an existing dependency can fulfill
+the requirement. If a new dependency is necessary, document the justification
+in the implementation plan's Technical Context section referencing which
+existing packages were evaluated and why they were insufficient.
+
+Approved existing dependency stack (prefer these first):
+- `pymupdf` — PDF reading and creation (use for PDF generation via
+  `page.insert_htmlbox()`)
+- `grandalf` — graph layout algorithms
+- `langchain`, `langchain-community`, `langchain-openai` — LLM orchestration
+- `fastapi` — web API endpoints
+- `streamlit` — interactive web UI (dev dependency)
+
+**Rationale**: Each dependency adds maintenance burden, security surface area,
+and lockfile churn. The existing stack already covers most needs for this
+project (PDF via pymupdf, LLM via langchain, UI via streamlit, API via
+fastapi). Constraining additions prevents bloat and keeps the project
+lightweight.
+
 ## Development Workflow
 
 - **Feature lifecycle**: Specify (`/speckit.specify`) → Plan (`/speckit.plan`)
   → Tasks (`/speckit.tasks`) → Implement → Test → Polish.
 - **AI assistant onboarding**: AI agents (opencode) MUST read `AGENTS.md`
   and this constitution before editing any file.
-- **Dependency hygiene**: Do not introduce dependencies beyond the
-  LangChain/LangGraph ecosystem unless justified in the plan's Complexity
-  Tracking section.
+- **Dependency hygiene**: Follow Principle VI (Dependency Discipline). New
+  external dependencies require documented justification in the plan's
+  Technical Context section referencing evaluated existing alternatives.
 - **File modification**: Prefer editing existing files over creating new ones
   unless the task explicitly requires a new file. Never commit changes unless
   explicitly asked.
@@ -113,6 +135,7 @@ diagnostic.
   - Constitution compliance (no violated MUST rules)
   - Test coverage for new/modified logic
   - No hardcoded configuration values
+  - No unjustified new dependencies (Principle VI)
   - Proof of `ruff` compliance
 
 ## Governance
@@ -135,4 +158,4 @@ justification in the plan's Complexity Tracking section is grounds for
 rejection. Runtime development guidance lives in `AGENTS.md` and must not
 contradict this constitution.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-04 | **Last Amended**: 2026-07-04
+**Version**: 1.1.0 | **Ratified**: 2026-07-04 | **Last Amended**: 2026-07-17
