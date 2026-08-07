@@ -1,0 +1,13 @@
+Reflection and Learning Insights - Future Gadgets Inc. Support Crew
+
+Working on this project taught me that a multi-agent system is not just about connecting models, but about carefully designing boundaries, responsibilities, and controls.
+
+The biggest lesson was the value of decomposing a problem into narrow, well-scoped specialists instead of one monolithic prompt. Giving each agent a single domain - product info, order status, or promotions - made its behavior predictable and easy to debug. The orchestrator then becomes a thin dispatcher that only has to classify intent and delegate, which is a much simpler task than answering everything at once.
+
+I also learned that tool descriptions and prompts are part of the system design, not an afterthought. The quality of the routing depended directly on how clearly I described each tool's domain and expected input format. When descriptions were ambiguous or overlapped, the router made wrong choices; when they were precise and mutually exclusive, routing became accurate.
+
+Another important insight was about governance. Real data, real orders, and real promotions raise risks that a prototype can hide: hallucinated information, mishandled personal data, and overstated offers. Adding mitigations like strict domain scoping, static vetted data, and logging forced me to think about the system beyond "does it work" and consider "is it safe."
+
+Finally, I learned that debugging agent behavior requires observability. Tracing which tool was called and what it returned was essential to find where the pipeline broke.
+
+These insights - decompose responsibilities, design prompts as system components, and govern before scaling - are principles I will apply to future AI projects.

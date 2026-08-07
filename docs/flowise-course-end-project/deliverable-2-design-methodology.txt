@@ -1,0 +1,9 @@
+Design Methodology - Future Gadgets Inc. Support Crew
+
+I followed a narrow specialists, wide orchestrator methodology: decompose the support workload into three mutually exclusive domains and route between them with a single intelligent dispatcher.
+
+The Product Info Agent answers questions about product features, specifications, and availability using a fixed catalog. The Order Status Agent handles only order tracking and shipping, asking for the order number before issuing the standard 3-5 business day estimate. The Promotions and Deals Agent covers sales and discounts, broadcasting the smartwatch promotion.
+
+Each specialist is intentionally scoped by its system prompt, and each prompt redirects out-of-scope questions elsewhere, which keeps responses consistent and prevents one agent answering outside its domain.
+
+The orchestrator classifies each customer query and delegates via three Chatflow Tools (product_info, order_status, promotions). The tool descriptions justify the design: each states its domain and instructs the model to pass a JSON input, so the router matches queries to the correct tool and invokes it with well-formed arguments. These descriptive, mutually exclusive definitions directly reduce misrouting and tool-calling errors.

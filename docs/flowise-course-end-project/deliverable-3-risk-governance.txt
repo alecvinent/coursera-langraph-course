@@ -1,0 +1,13 @@
+Risk & Governance Analysis - Future Gadgets Inc. Support Crew
+
+Risk 1: Agent provides incorrect product or order information. The specialists rely on simulated or static data (fixed catalog, standard 3-5 day estimate), so a model hallucination could state a wrong price, availability, or delivery promise that damages customer trust and escalates complaints.
+
+Mitigation: Scope each specialist strictly to its domain prompt, ground answers in the static catalog text, and instruct agents to redirect out-of-scope questions instead of guessing. Add conversational logging so any incorrect response can be traced, reviewed, and corrected promptly.
+
+Risk 2: Sensitive customer data is mishandled. The Order Status Agent asks for order numbers, and the orchestrator forwards the full user question to the specialist tools. If chat history or request payloads are stored without controls, personal information could be exposed or misused.
+
+Mitigation: Apply a least-privilege policy: keep order data simulation-only (no real backend), avoid echoing personal details beyond the order number, and configure retention and access controls on the chat logs. Never embed API keys in prompts or code.
+
+Risk 3: Agent hallucinates or overstates promotions. An unconstrained sales assistant could invent discounts, dates, or conditions that the store never offered, causing legal or financial exposure.
+
+Mitigation: Hard-code the vetted promotion (20% off smartwatches) directly in the prompt, forbid inventing new offers, and monitor and log conversations to detect and correct overstatements.
