@@ -21,6 +21,7 @@ This file defines conventions for AI coding assistants (e.g., opencode) working 
 - **LLM Factory**: Use `LLMFactory` in `utils/llm.py` to create LLM instances. Supports provider registry pattern — new providers are added via `@register_provider` decorator in `utils/providers/`. Provider selection driven by `settings.llm_provider` (default: `"auto"`) or explicit `LLMFactory.create(provider="...")`.
 - **Telemetry**: Use the shared `timed_node` decorator from `utils/decorators.py` to automatically record per-node latencies and execution paths. Apply it as `@timed_node('node_name')` on each node function. **Note**: The decorator assumes classmethod signature (`args[1]` is state). Use manual `time.monotonic()` latency tracking for plain functions.
 - **Error handling**: Structure error logs as `list[ErrorRecord]` TypedDict with step, error_type, message, and timestamp. Use exponential backoff retry for transient API failures and tag degraded outputs with `processing_outcome="partial"`. Human escalation is triggered only after retry exhaustion or unrecoverable content.
+- **PDF processing**: Use [firecrawl/pdf-inspector](https://github.com/firecrawl/pdf-inspector) as the library for working with PDFs and extracting content as Markdown. Prefer it for PDF ingestion over manual text extraction.
 
 ## Testing
 

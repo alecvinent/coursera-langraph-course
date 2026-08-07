@@ -83,8 +83,19 @@ src/langgraph_course/
 │       ├── tickets.py       # Support-ticket routing with retry logic
 │       ├── ticket_submission.txt  # Coursera reflection submission
 │       └── data.py          # Shared test data
-├── multiagent-governance_course/  # Agent Ecosystem Mapping (Module 1 Foundations)
-│   └── module_1_foundations/
+├── multiagent-governance_course/  # Agent Ecosystem Mapping + Sequential Agent Workflows
+│   ├── module_1_foundations/      # Module 1: agent classification, interaction maps, trade-off analysis
+│   └── module_2_multiagents/      # Module 2: sequential Researcher -> Writer -> SEO blog pipeline
+│       ├── agents/
+│       │   ├── prompts.py         # Researcher/Writer/SEO prompt templates + LLM invocation
+│       │   ├── researcher.py      # Node: topic -> bulleted outline
+│       │   ├── writer.py          # Node: outline -> article draft
+│       │   └── seo.py             # Node: draft -> SEO feedback
+│       ├── state.py               # BlogState pydantic model
+│       ├── workflow.py            # Linear LangGraph StateGraph chain
+│       ├── runtime.py             # run_pipeline() façade
+│       ├── export.py              # Prompt-engineering doc + communication-protocol analysis
+│       └── __main__.py            # CLI entry point
 ├── module_2/                # Implementing State Management
 │   └── labs/
 │       ├── __init__.py
@@ -116,12 +127,18 @@ src/langgraph_course/
 tests/
 ├── base.py                  # Shared TestCase with setUp/tearDown helpers
 ├── multiagent-governance_course/
-│   └── test_module_1_foundations/
-│       ├── test_analysis.py
-│       ├── test_classification.py
+│   ├── test_module_1_foundations/
+│   │   ├── test_analysis.py
+│   │   ├── test_classification.py
+│   │   ├── test_export.py
+│   │   ├── test_interaction_map.py
+│   │   └── test_scenarios.py
+│   └── test_module_2_multiagents/
+│       ├── test_agents.py
 │       ├── test_export.py
-│       ├── test_interaction_map.py
-│       └── test_scenarios.py
+│       ├── test_prompts.py
+│       ├── test_state.py
+│       └── test_workflow.py
 ├── test_module_1/
 │   ├── test_chatbot.py
 │   ├── test_customer_inquiry.py
@@ -155,6 +172,16 @@ poetry run python -m unittest tests.test_module_1.test_customer_inquiry -v
 # Run all tests
 poetry run python -m unittest discover -v
 ```
+
+## Flowise Course-end Project Guide
+
+The course-end project ("Designing an Autonomous E-commerce Support Crew") is implemented as a **step-by-step guide** for building the multi-agent system on a local Flowise instance (Docker container `docker-flowise-1`, UI at `http://localhost:3000`). See:
+
+- **[Guide](docs/flowise-course-end-project/README.md)** — build the three specialist agents, the orchestrator with a routing node, and author the four grading deliverables
+- **[Feature spec](specs/005-flowise-guide/spec.md)** — requirements, user stories, and success criteria
+- **[Design docs](specs/005-flowise-guide/)** — `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`
+
+> The guide references the Flowise source checkout at `C:\working\projects\ai-projects\Flowise` as the source of truth for node names and configuration.
 
 ## Prerequisites
 
